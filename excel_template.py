@@ -5,7 +5,12 @@ from openpyxl.worksheet.datavalidation import DataValidation
 
 from preprocess import FEATURE_ORDER
 
-def create_template(path="template.xlsx", max_rows=5000):
+def create_template(path, max_rows=5000):
+
+    """
+    path: Can be a string filename OR a BytesIO buffer object.
+    max_rows: How far down to apply the dropdown menus.
+    """
 
     wb = Workbook()
     ws = wb.active
@@ -46,15 +51,21 @@ def create_template(path="template.xlsx", max_rows=5000):
     }
 
     # Create data validation for each categorical column
+    # Create data validation for each categorical column
     for col_idx, col_name in enumerate(columns, start=1):
         if col_name in option_map:  # Only attach dropdowns to categorical columns
             options = option_map[col_name]
+            # Join options with commas for the list formula
             dv = DataValidation(type="list", formula1=f'"{",".join(options)}"')
             ws.add_data_validation(dv)
+            
             # Apply validation to rows 2 → max_rows
-            dv.ranges.append(
-                f"{ws.cell(row=2, column=col_idx).coordinate}:{ws.cell(row=max_rows, column=col_idx).coordinate}"
-            )
+            # Using coordinate ensures we get "A2", "B2", etc. correctly
+            first_cell = ws.cell(row=2, column=col_idx).coordinate
+            last_cell = ws.cell(row=max_rows, column=col_idx).coordinate
+            dv.add(f"{first_cell}:{last_cell}")
+
 
     # Save Excel file
+    # If 'path' is a BytesIO object, openpyxl writes to memory automatically.
     wb.save(path)

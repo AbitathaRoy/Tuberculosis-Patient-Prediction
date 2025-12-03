@@ -1,5 +1,8 @@
 streamlit
 pandas
 numpy
-tensorflow
+scikit-learn
+joblib
 openpyxl
+tensorflow
+keras>=3.0.0

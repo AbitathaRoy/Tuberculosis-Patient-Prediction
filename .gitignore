@@ -1,0 +1,17 @@
+# --- Python Internals ---
+__pycache__/
+*.pyc
+
+# --- Excel & Data Files ---
+# Ignore ALL Excel files by default (Safety First)
+*.xlsx
+*.csv
+
+# Ignore Excel temporary lock files (the ones with ~$)
+~$*.xlsx
+
+# --- System & Environment ---
+.DS_Store
+.env
+venv/
+.streamlit/secrets.toml
