@@ -3,19 +3,18 @@ import numpy as np
 import joblib
 
 # Load scaler trained during model training
-scaler = joblib.load("saved_models/tb_default_model_scaler.pkl")
+scaler = joblib.load("saved_models/tb_default_model_scaler_2.pkl")
 
-FEATURE_ORDER = [
-    "Age",
-    "DiabetesStatus",
-    "Microbiologically_Confirmed",
-    "TypeOfCase",
-    "SiteOfDisease",
-    "Gender",
-    "Inter-state/Inter-district enrollment",
-    "Weight",
-    "HIV_Status"
-]
+FEATURE_ORDER = ['SiteOfDisease', 
+                 'Age', 
+                 'Microbiologically_Confirmed', 
+                 'DiabetesStatus', 
+                 'Weight', 
+                 'Inter-state/Inter-district enrollment', 
+                 'Gender', 
+                 'HIV_Status', 
+                 'TypeOfCase'
+                 ]
 
 # --- MAPPINGS ---
 
@@ -36,10 +35,10 @@ MICROBIO_MAP = {
     0: 0, 1: 1,
     "0": 0, "1": 1
 }
-DIABETES_MAP = {"Diabetic": 0, "Non-diabetic": 1}
+DIABETES_MAP = {"Diabetic": 0, "Non-diabetic": 1, "Unknown": 2}
 
 OUTPUT_MAP = {1: "not-default", 0: "default"}
-THRESHOLD = 0.61
+THRESHOLD = 0.60
 
 
 def _map_series(series, mapping, colname):

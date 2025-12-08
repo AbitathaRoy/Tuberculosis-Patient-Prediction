@@ -2,9 +2,9 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import io
-import keras
+# import keras
 from keras.models import load_model
-from saved_models.register_activation import ModifiedReLU
+# from saved_models.register_activation import ModifiedReLU
 
 from preprocess import preprocess_single, preprocess_batch, decode_output
 
@@ -20,8 +20,8 @@ debug_mode = False
 @st.cache_resource
 def load_my_model():
     return load_model(
-        "saved_models/tb_default_model.keras",
-        custom_objects={"ModifiedReLU": ModifiedReLU}
+        "saved_models/tb_default_model_2.keras"
+        # custom_objects={"ModifiedReLU": ModifiedReLU}
     )
 
 model = load_my_model()

@@ -7,6 +7,9 @@ __pycache__/
 *.xlsx
 *.csv
 
+# Ignore any file in datasets folder
+datasets/
+
 # Ignore Excel temporary lock files (the ones with ~$)
 ~$*.xlsx
 
