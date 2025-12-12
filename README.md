@@ -7,8 +7,6 @@
 
 A machine learning-powered dashboard designed to predict the likelihood of a Tuberculosis (TB) patient "defaulting" (dropping out) of their treatment regimen. Early identification allows healthcare providers to intervene with counseling and support, ultimately improving treatment adherence and cure rates.
 
-🔗 **[Live Demo: Click Here to Launch App](https://tb-default-patient-prediction.streamlit.app/)**
-
 ## 🎯 Problem Statement
 TB treatment requires a strict 6-9 month regimen. "Defaulting" (stopping medication) leads to drug-resistant TB (MDR-TB), which is harder to cure and more contagious. This tool uses patient demographic and clinical data to flag high-risk patients *before* they default.
 
