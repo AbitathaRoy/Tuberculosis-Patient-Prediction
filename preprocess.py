@@ -14,8 +14,9 @@ FEATURE_ORDER = ['SiteOfDisease',
                  'Gender', 
                  'HIV_Status', 
                  'TypeOfCase',
-                 'urban_rural_background',
-                 'Bank_details'
+                 'Bank_details',
+                 'urban_rural_background'
+                 
                  ]
 
 # --- MAPPINGS ---
@@ -95,6 +96,8 @@ def _preprocess_dataframe(df):
 
     # --- IMPORTANT FIX: Correct scaling order ---
     ordered = scaler.feature_names_in_
+    print("Scaler expects:", scaler.feature_names_in_)
+
     X = df[ordered].astype(float)
 
     X_scaled = scaler.transform(X)
