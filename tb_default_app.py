@@ -20,7 +20,7 @@ debug_mode = False
 @st.cache_resource
 def load_my_model():
     return load_model(
-        "saved_models/tb_default_model_2.keras"
+        "saved_models/tb_default_model_new.keras"
         # custom_objects={"ModifiedReLU": ModifiedReLU}
     )
 
@@ -48,6 +48,16 @@ with tab1:
     ])
     site = st.selectbox("Site of Disease", ["Pulmonary", "Extra Pulmonary"])
     interstate = st.selectbox("Inter-state / Inter-district", ["Inter-District", "Inter-State"])
+    urban_rural = st.selectbox(
+    "Urban / Rural Background",
+    ["urban", "rural", "Unknown"]
+    )
+
+    bank_details = st.selectbox(
+    "Bank Details Status",
+    ["Eligible", "Not Eligible", "Received", "Unknown"]
+    )
+
 
     if st.button("Predict for this patient"):
         input_dict = {
@@ -59,7 +69,9 @@ with tab1:
             "Microbiologically_Confirmed": micro,
             "TypeOfCase": typeofcase,
             "SiteOfDisease": site,
-            "Inter-state/Inter-district enrollment": interstate
+            "Inter-state/Inter-district enrollment": interstate,
+            "Urban-Rural Background": urban_rural,
+            "Bank details": bank_details
         }
 
         X = preprocess_single(input_dict)
@@ -124,6 +136,18 @@ with tab2:
             interstate = st.selectbox("Inter-state / Inter-district",
                 ["Inter-District", "Inter-State", "Unknown"],
                 key=f"interstate_{i}")
+            urban_rural = st.selectbox(
+            "Urban / Rural Background",
+            ["urban", "rural", "Unknown"],
+            key=f"urban_{i}"
+            )
+
+            bank_details = st.selectbox(
+            "Bank Details Status",
+            ["Eligible", "Not Eligible", "Received", "Unknown"],
+            key=f"bank_{i}"
+            )
+
 
         if st.button(f"Delete Patient {i+1}", key=f"delete_{i}"):
             st.session_state.batch_data.pop(i)
@@ -143,7 +167,9 @@ with tab2:
                 "Microbiologically_Confirmed": st.session_state[f"micro_{i}"],
                 "TypeOfCase": st.session_state[f"type_{i}"],
                 "SiteOfDisease": st.session_state[f"site_{i}"],
-                "Inter-state/Inter-district enrollment": st.session_state[f"interstate_{i}"]
+                "Inter-state/Inter-district enrollment": st.session_state[f"interstate_{i}"],
+                "urban_rural_background": st.session_state[f"urban_{i}"],
+                "Bank_details": st.session_state[f"bank_{i}"]
             })
 
         df_batch = pd.DataFrame(records)
