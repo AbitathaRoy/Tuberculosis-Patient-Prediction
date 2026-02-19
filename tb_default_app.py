@@ -27,11 +27,11 @@ def load_my_model():
 model = load_my_model()
 
 st.title("TB Default Prediction")
-tab1, tab2 = st.tabs(["Single Prediction", "Manual Batch Entry"])
+tab1, tab2 = st.tabs(["Single Prediction", "Batch Prediction"])
 
 # ---------------- SINGLE ----------------
 with tab1:
-    st.subheader("Single patient prediction")
+    st.subheader("Single Patient Prediction")
 
     name = st.text_input("Patient Name")
     patient_id = st.text_input("Patient ID")
@@ -87,68 +87,86 @@ with tab1:
 # ------------Manual Batch--------------
 
 with tab2:
-    st.subheader("Batch Prediction")
+    st.subheader("Batch Patient Prediction")
 
     if "batch_data" not in st.session_state:
         st.session_state.batch_data = []
 
-    # Display patient records as horizontal rows
-    for i in range(len(st.session_state.batch_data)):
-        # Create columns for each field: Name, ID, Gender, Age, Weight, HIV, Diabetes, Micro, Type, Site, Inter-state, Urban/Rural, Bank, Delete
-        cols = st.columns([1.5, 1.5, 1.2, 0.8, 0.8, 1.2, 1.2, 1.2, 1.5, 1.2, 1.5, 1.2, 1.5, 0.5])
+    # Add custom CSS for scrollable rows
+    st.markdown("""
+    <style>
+    .scrollable-container {
+        overflow-x: auto;
+        overflow-y: visible;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # Display patient records as horizontal rows with scrolling
+    if len(st.session_state.batch_data) > 0:
+        st.markdown('<div class="scrollable-container">', unsafe_allow_html=True)
         
-        with cols[0]:
-            st.text_input("Name", key=f"name_{i}", label_visibility="collapsed")
-        with cols[1]:
-            st.text_input("ID", key=f"id_{i}", label_visibility="collapsed")
-        with cols[2]:
-            st.selectbox("Gender", 
-                ["Female", "Male", "Transgender", "Unknown"], 
-                key=f"gender_{i}", label_visibility="collapsed")
-        with cols[3]:
-            st.number_input("Age", 0, 120, 30, key=f"age_{i}", label_visibility="collapsed")
-        with cols[4]:
-            st.number_input("Weight", 1.0, 250.0, key=f"weight_{i}", label_visibility="collapsed")
-        with cols[5]:
-            st.selectbox("HIV Status", 
-                ["Non-Reactive", "Positive", "Reactive", "Unknown"],
-                key=f"hiv_{i}", label_visibility="collapsed")
-        with cols[6]:
-            st.selectbox("Diabetes", 
-                ["Non-diabetic", "Diabetic", "Unknown"],
-                key=f"diabetes_{i}", label_visibility="collapsed")
-        with cols[7]:
-            st.selectbox("Microbiologically Confirmed",
-                ["Yes", "No", "Unknown"],
-                key=f"micro_{i}", label_visibility="collapsed")
-        with cols[8]:
-            st.selectbox("Case Type", [
-                "New", "PMDT", "Retreatment: Others",
-                "Retreatment: Recurrent",
-                "Retreatment: Treatment after failure",
-                "Retreatment: Treatment after lost to follow up",
-                "Unknown"
-            ], key=f"type_{i}", label_visibility="collapsed")
-        with cols[9]:
-            st.selectbox("Site",
-                ["Pulmonary", "Extra Pulmonary", "Unknown"],
-                key=f"site_{i}", label_visibility="collapsed")
-        with cols[10]:
-            st.selectbox("Interstate",
-                ["Inter-District", "Inter-State", "Unknown"],
-                key=f"interstate_{i}", label_visibility="collapsed")
-        with cols[11]:
-            st.selectbox("Urban/Rural",
-                ["urban", "rural", "Unknown"],
-                key=f"urban_{i}", label_visibility="collapsed")
-        with cols[12]:
-            st.selectbox("Bank Status",
-                ["Eligible", "Not Eligible", "Received", "Unknown"],
-                key=f"bank_{i}", label_visibility="collapsed")
-        with cols[13]:
-            if st.button("✕", key=f"delete_{i}"):
-                st.session_state.batch_data.pop(i)
-                st.rerun()
+        for i in range(len(st.session_state.batch_data)):
+            # Create wider columns to force horizontal scrolling
+            cols = st.columns([2.0, 2.0, 2.0, 1.2, 1.5, 2.0, 2.0, 2.5, 2.5, 2.0, 2.2, 2.0, 2.2, 0.8])
+            
+            with cols[0]:
+                st.text_input("Patient Name", key=f"name_{i}", label_visibility="visible")
+            with cols[1]:
+                st.text_input("Patient ID", key=f"id_{i}", label_visibility="visible")
+            with cols[2]:
+                st.selectbox("Gender", 
+                    ["Female", "Male", "Transgender", "Unknown"], 
+                    key=f"gender_{i}", label_visibility="visible")
+            with cols[3]:
+                st.number_input("Age", 0, 120, 30, key=f"age_{i}", label_visibility="visible")
+            with cols[4]:
+                st.number_input("Weight (kg)", 1.0, 250.0, key=f"weight_{i}", label_visibility="visible")
+            with cols[5]:
+                st.selectbox("HIV Status", 
+                    ["Non-Reactive", "Positive", "Reactive", "Unknown"],
+                    key=f"hiv_{i}", label_visibility="visible")
+            with cols[6]:
+                st.selectbox("Diabetes Status", 
+                    ["Non-diabetic", "Diabetic", "Unknown"],
+                    key=f"diabetes_{i}", label_visibility="visible")
+            with cols[7]:
+                st.selectbox("Microbiologically Confirmed",
+                    ["Yes", "No", "Unknown"],
+                    key=f"micro_{i}", label_visibility="visible")
+            with cols[8]:
+                st.selectbox("Type of TB Case", [
+                    "New", "PMDT", "Retreatment: Others",
+                    "Retreatment: Recurrent",
+                    "Retreatment: Treatment after failure",
+                    "Retreatment: Treatment after lost to follow up",
+                    "Unknown"
+                ], key=f"type_{i}", label_visibility="visible")
+            with cols[9]:
+                st.selectbox("Site of Disease",
+                    ["Pulmonary", "Extra Pulmonary", "Unknown"],
+                    key=f"site_{i}", label_visibility="visible")
+            with cols[10]:
+                st.selectbox("Inter-state/Inter-district",
+                    ["Inter-District", "Inter-State", "Unknown"],
+                    key=f"interstate_{i}", label_visibility="visible")
+            with cols[11]:
+                st.selectbox("Urban/Rural Background",
+                    ["urban", "rural", "Unknown"],
+                    key=f"urban_{i}", label_visibility="visible")
+            with cols[12]:
+                st.selectbox("Bank Details Status",
+                    ["Eligible", "Not Eligible", "Received", "Unknown"],
+                    key=f"bank_{i}", label_visibility="visible")
+            with cols[13]:
+                if st.button("✕", key=f"delete_{i}"):
+                    st.session_state.batch_data.pop(i)
+                    st.rerun()
+        
+        st.markdown('</div>', unsafe_allow_html=True)
 
     # Bottom control buttons
     st.divider()
