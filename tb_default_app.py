@@ -84,10 +84,10 @@ with tab1:
         st.success(f"Prediction for {name} (ID: {patient_id}) → {label}")
         st.write("Raw model output:", raw_out)
 
-# ---Manual_--
+# ------------Manual Batch--------------
 
 with tab2:
-    st.subheader("Manual Batch Entry")
+    st.subheader("Batch Prediction")
 
     if "batch_data" not in st.session_state:
         st.session_state.batch_data = []

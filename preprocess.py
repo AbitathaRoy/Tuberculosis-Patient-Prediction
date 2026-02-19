@@ -3,7 +3,7 @@ import numpy as np
 import joblib
 
 # Load scaler trained during model training
-scaler = joblib.load("saved_models/tb_default_model_scaler_2.pkl")
+scaler = joblib.load("saved_models/tb_default_model_scaler_new.pkl")
 
 FEATURE_ORDER = ['SiteOfDisease', 
                  'Age', 
