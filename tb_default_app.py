@@ -92,100 +92,114 @@ with tab2:
     if "batch_data" not in st.session_state:
         st.session_state.batch_data = []
 
-    if st.button("Add Patient"):
-        st.session_state.batch_data.append({})
-
+    # Display patient records as horizontal rows
     for i in range(len(st.session_state.batch_data)):
-        st.markdown(f"### Patient {i+1}")
-
-        col1, col2 = st.columns(2)
-        name = st.text_input("Patient Name", key="single_name")
-        patient_id = st.text_input("Patient ID", key="single_id")
-
-        with col1:
-            gender = st.selectbox("Gender", 
+        # Create columns for each field: Name, ID, Gender, Age, Weight, HIV, Diabetes, Micro, Type, Site, Inter-state, Urban/Rural, Bank, Delete
+        cols = st.columns([1.5, 1.5, 1.2, 0.8, 0.8, 1.2, 1.2, 1.2, 1.5, 1.2, 1.5, 1.2, 1.5, 0.5])
+        
+        with cols[0]:
+            st.text_input("Name", key=f"name_{i}", label_visibility="collapsed")
+        with cols[1]:
+            st.text_input("ID", key=f"id_{i}", label_visibility="collapsed")
+        with cols[2]:
+            st.selectbox("Gender", 
                 ["Female", "Male", "Transgender", "Unknown"], 
-                key=f"gender_{i}")
-
-            age = st.number_input("Age", 0, 120, 30, key=f"age_{i}")
-
-            weight = st.number_input("Weight", 1.0, 250.0, key=f"weight_{i}")
-
-            hiv = st.selectbox("HIV Status", 
+                key=f"gender_{i}", label_visibility="collapsed")
+        with cols[3]:
+            st.number_input("Age", 0, 120, 30, key=f"age_{i}", label_visibility="collapsed")
+        with cols[4]:
+            st.number_input("Weight", 1.0, 250.0, key=f"weight_{i}", label_visibility="collapsed")
+        with cols[5]:
+            st.selectbox("HIV Status", 
                 ["Non-Reactive", "Positive", "Reactive", "Unknown"],
-                key=f"hiv_{i}")
-
-        with col2:
-            diabetes = st.selectbox("Diabetes Status", 
+                key=f"hiv_{i}", label_visibility="collapsed")
+        with cols[6]:
+            st.selectbox("Diabetes", 
                 ["Non-diabetic", "Diabetic", "Unknown"],
-                key=f"diabetes_{i}")
-
-            micro = st.selectbox("Microbiologically Confirmed?",
+                key=f"diabetes_{i}", label_visibility="collapsed")
+        with cols[7]:
+            st.selectbox("Microbiologically Confirmed",
                 ["Yes", "No", "Unknown"],
-                key=f"micro_{i}")
-
-            typeofcase = st.selectbox("Type of TB Case", [
+                key=f"micro_{i}", label_visibility="collapsed")
+        with cols[8]:
+            st.selectbox("Case Type", [
                 "New", "PMDT", "Retreatment: Others",
                 "Retreatment: Recurrent",
                 "Retreatment: Treatment after failure",
                 "Retreatment: Treatment after lost to follow up",
                 "Unknown"
-            ], key=f"type_{i}")
-
-            site = st.selectbox("Site of Disease",
+            ], key=f"type_{i}", label_visibility="collapsed")
+        with cols[9]:
+            st.selectbox("Site",
                 ["Pulmonary", "Extra Pulmonary", "Unknown"],
-                key=f"site_{i}")
-
-            interstate = st.selectbox("Inter-state / Inter-district",
+                key=f"site_{i}", label_visibility="collapsed")
+        with cols[10]:
+            st.selectbox("Interstate",
                 ["Inter-District", "Inter-State", "Unknown"],
-                key=f"interstate_{i}")
-            urban_rural = st.selectbox(
-            "Urban / Rural Background",
-            ["urban", "rural", "Unknown"],
-            key=f"urban_{i}"
-            )
+                key=f"interstate_{i}", label_visibility="collapsed")
+        with cols[11]:
+            st.selectbox("Urban/Rural",
+                ["urban", "rural", "Unknown"],
+                key=f"urban_{i}", label_visibility="collapsed")
+        with cols[12]:
+            st.selectbox("Bank Status",
+                ["Eligible", "Not Eligible", "Received", "Unknown"],
+                key=f"bank_{i}", label_visibility="collapsed")
+        with cols[13]:
+            if st.button("✕", key=f"delete_{i}"):
+                st.session_state.batch_data.pop(i)
+                st.rerun()
 
-            bank_details = st.selectbox(
-            "Bank Details Status",
-            ["Eligible", "Not Eligible", "Received", "Unknown"],
-            key=f"bank_{i}"
-            )
+    # Bottom control buttons
+    st.divider()
+    col1, col2, col3, col_spacer = st.columns([1, 1, 1, 2])
+    
+    with col1:
+        if st.button("➕ Add New Patient", use_container_width=True):
+            st.session_state.batch_data.append({})
+            st.rerun()
+    
+    with col2:
+        if st.button("▶ Run Batch Prediction", use_container_width=True):
+            if len(st.session_state.batch_data) > 0:
+                records = []
 
+                for i in range(len(st.session_state.batch_data)):
+                    records.append({
+                        "Name": st.session_state.get(f"name_{i}", ""),
+                        "Patient_ID": st.session_state.get(f"id_{i}", ""),
+                        "Gender": st.session_state[f"gender_{i}"],
+                        "Age": st.session_state[f"age_{i}"],
+                        "Weight": st.session_state[f"weight_{i}"],
+                        "HIV_Status": st.session_state[f"hiv_{i}"],
+                        "DiabetesStatus": st.session_state[f"diabetes_{i}"],
+                        "Microbiologically_Confirmed": st.session_state[f"micro_{i}"],
+                        "TypeOfCase": st.session_state[f"type_{i}"],
+                        "SiteOfDisease": st.session_state[f"site_{i}"],
+                        "Inter-state/Inter-district enrollment": st.session_state[f"interstate_{i}"],
+                        "urban_rural_background": st.session_state[f"urban_{i}"],
+                        "Bank_details": st.session_state[f"bank_{i}"]
+                    })
 
-        if st.button(f"Delete Patient {i+1}", key=f"delete_{i}"):
-            st.session_state.batch_data.pop(i)
-            st.experimental_rerun()
+                df_batch = pd.DataFrame(records)
 
-    if st.button("Run Batch Prediction") and len(st.session_state.batch_data) > 0:
+                X = preprocess_batch(df_batch)
+                with st.spinner('Running batch predictions...'):
+                    raw_preds = model.predict(X)
 
-        records = []
+                decoded = [decode_output(r) for r in raw_preds]
 
-        for i in range(len(st.session_state.batch_data)):
-            records.append({
-                "Gender": st.session_state[f"gender_{i}"],
-                "Age": st.session_state[f"age_{i}"],
-                "Weight": st.session_state[f"weight_{i}"],
-                "HIV_Status": st.session_state[f"hiv_{i}"],
-                "DiabetesStatus": st.session_state[f"diabetes_{i}"],
-                "Microbiologically_Confirmed": st.session_state[f"micro_{i}"],
-                "TypeOfCase": st.session_state[f"type_{i}"],
-                "SiteOfDisease": st.session_state[f"site_{i}"],
-                "Inter-state/Inter-district enrollment": st.session_state[f"interstate_{i}"],
-                "urban_rural_background": st.session_state[f"urban_{i}"],
-                "Bank_details": st.session_state[f"bank_{i}"]
-            })
+                df_batch["Prediction"] = decoded
 
-        df_batch = pd.DataFrame(records)
-
-        X = preprocess_batch(df_batch)
-        raw_preds = model.predict(X)
-
-        decoded = [decode_output(r) for r in raw_preds]
-
-        df_batch["Prediction"] = decoded
-
-        st.success("Batch predictions complete.")
-        st.dataframe(df_batch)
+                st.success("Batch predictions complete.")
+                st.dataframe(df_batch)
+            else:
+                st.warning("Please add at least one patient.")
+    
+    with col3:
+        if st.button("🔄 Reset", use_container_width=True):
+            st.session_state.batch_data = []
+            st.rerun()
 
 
 
