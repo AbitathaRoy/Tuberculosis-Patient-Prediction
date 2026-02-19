@@ -71,7 +71,7 @@ with tab1:
             "TypeOfCase": typeofcase,
             "SiteOfDisease": site,
             "Inter-state/Inter-district enrollment": interstate,
-            "Urban-Rural Background": urban_rural,
+            "urban_rural_background": urban_rural,
             "Bank details": bank_details
         }
 
@@ -99,8 +99,8 @@ with tab2:
         st.markdown(f"### Patient {i+1}")
 
         col1, col2 = st.columns(2)
-        name = st.text_input("Patient Name")
-        patient_id = st.text_input("Patient ID")
+        name = st.text_input("Patient Name", key="single_name")
+        patient_id = st.text_input("Patient ID", key="single_id")
 
         with col1:
             gender = st.selectbox("Gender", 
