@@ -27,7 +27,7 @@ def load_my_model():
 model = load_my_model()
 
 st.title("TB Default Prediction")
-tab1, tab2 = st.tabs(["Single Prediction", "Batch Prediction"])
+tab1, tab2 = st.tabs(["Single Prediction", "Manual Batch Entry"])
 
 # ---------------- SINGLE ----------------
 with tab1:
@@ -71,66 +71,93 @@ with tab1:
         st.success(f"Prediction for {name} (ID: {patient_id}) → {label}")
         st.write("Raw model output:", raw_out)
 
-# ---------------- BATCH ----------------
+# ---Manual_--
+
 with tab2:
-    st.subheader("Batch predictions via XLSX")
+    st.subheader("Manual Batch Entry")
 
-    if st.button("Download XLSX template"):
-        from excel_template import create_template
-        import io 
+    if "batch_data" not in st.session_state:
+        st.session_state.batch_data = []
 
-        # Create an in-memory buffer (a virtual file)
-        buffer = io.BytesIO()
-        
-        # Pass the buffer instead of "template.xlsx"
-        # Pandas will write the excel data into this variable in RAM
-        create_template(buffer, max_rows=5000)
-        
-        # Rewind the buffer to the beginning so it can be read
-        buffer.seek(0)
-        
-        st.download_button(
-            label="Download template.xlsx",
-            data=buffer,
-            file_name="template.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+    if st.button("Add Patient"):
+        st.session_state.batch_data.append({})
 
-    uploaded = st.file_uploader("Upload filled template", type=["xlsx"])
+    for i in range(len(st.session_state.batch_data)):
+        st.markdown(f"### Patient {i+1}")
 
-    if uploaded:
-        df = pd.read_excel(uploaded)
-        st.write("Preview:")
-        st.dataframe(df.head())
+        col1, col2 = st.columns(2)
 
-        if st.button("Run batch prediction"):
+        with col1:
+            gender = st.selectbox("Gender", 
+                ["Female", "Male", "Transgender", "Unknown"], 
+                key=f"gender_{i}")
 
-            initial_count = len(df)
-            df_clean = df.dropna(how="any")
-            dropped_count = initial_count - len(df_clean)
-            if dropped_count > 0:
-                st.warning(f"{dropped_count} rows were dropped due to missing values.")
+            age = st.number_input("Age", 0, 120, 30, key=f"age_{i}")
 
-            features_df = df_clean.drop(columns=["PatientName", "PatientID"])
+            weight = st.number_input("Weight", 1.0, 250.0, key=f"weight_{i}")
 
-            X = preprocess_batch(features_df)
-            with st.spinner('Running AI diagnosis...'):
-                raw_preds = model.predict(X)
+            hiv = st.selectbox("HIV Status", 
+                ["Non-Reactive", "Positive", "Reactive", "Unknown"],
+                key=f"hiv_{i}")
 
-            decoded = [decode_output(r) for r in raw_preds]
+        with col2:
+            diabetes = st.selectbox("Diabetes Status", 
+                ["Non-diabetic", "Diabetic", "Unknown"],
+                key=f"diabetes_{i}")
 
-            # store predictions globally
-            st.session_state.df_out = df_clean.copy()
-            st.session_state.df_out["Prediction"] = decoded
+            micro = st.selectbox("Microbiologically Confirmed?",
+                ["Yes", "No", "Unknown"],
+                key=f"micro_{i}")
 
-            st.success("Batch predictions complete.")
-            st.dataframe(st.session_state.df_out)
+            typeofcase = st.selectbox("Type of TB Case", [
+                "New", "PMDT", "Retreatment: Others",
+                "Retreatment: Recurrent",
+                "Retreatment: Treatment after failure",
+                "Retreatment: Treatment after lost to follow up",
+                "Unknown"
+            ], key=f"type_{i}")
 
-            buf = io.BytesIO()
-            st.session_state.df_out.to_excel(buf, index=False)
-            buf.seek(0)
-            st.download_button("Download predictions.xlsx", data=buf,
-                               file_name="tb_predictions.xlsx")
+            site = st.selectbox("Site of Disease",
+                ["Pulmonary", "Extra Pulmonary", "Unknown"],
+                key=f"site_{i}")
+
+            interstate = st.selectbox("Inter-state / Inter-district",
+                ["Inter-District", "Inter-State", "Unknown"],
+                key=f"interstate_{i}")
+
+        if st.button(f"Delete Patient {i+1}", key=f"delete_{i}"):
+            st.session_state.batch_data.pop(i)
+            st.experimental_rerun()
+
+    if st.button("Run Batch Prediction") and len(st.session_state.batch_data) > 0:
+
+        records = []
+
+        for i in range(len(st.session_state.batch_data)):
+            records.append({
+                "Gender": st.session_state[f"gender_{i}"],
+                "Age": st.session_state[f"age_{i}"],
+                "Weight": st.session_state[f"weight_{i}"],
+                "HIV_Status": st.session_state[f"hiv_{i}"],
+                "DiabetesStatus": st.session_state[f"diabetes_{i}"],
+                "Microbiologically_Confirmed": st.session_state[f"micro_{i}"],
+                "TypeOfCase": st.session_state[f"type_{i}"],
+                "SiteOfDisease": st.session_state[f"site_{i}"],
+                "Inter-state/Inter-district enrollment": st.session_state[f"interstate_{i}"]
+            })
+
+        df_batch = pd.DataFrame(records)
+
+        X = preprocess_batch(df_batch)
+        raw_preds = model.predict(X)
+
+        decoded = [decode_output(r) for r in raw_preds]
+
+        df_batch["Prediction"] = decoded
+
+        st.success("Batch predictions complete.")
+        st.dataframe(df_batch)
+
 
 
 

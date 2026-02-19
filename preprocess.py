@@ -13,29 +13,44 @@ FEATURE_ORDER = ['SiteOfDisease',
                  'Inter-state/Inter-district enrollment', 
                  'Gender', 
                  'HIV_Status', 
-                 'TypeOfCase'
+                 'TypeOfCase',
+                 'urban_rural_background',
+                 'Bank_details'
                  ]
 
 # --- MAPPINGS ---
 
-GENDER_MAP = {"Female": 0, "Male": 1, "Transgender": 2}
-SITE_MAP = {"Pulmonary": 1, "Extra Pulmonary": 0}
-INTERSTATE_MAP = {"Inter-District": 0, "Inter-State": 1}
+GENDER_MAP = {"Female": 0, "Male": 1, "Transgender": 2, "Unknown": 3}
+
+SITE_MAP = {"Pulmonary": 1, "Extra Pulmonary": 0, "Unknown": 2}
+
+INTERSTATE_MAP = {"Inter-District": 0, "Inter-State": 1, "Unknown": 2}
+
 HIV_MAP = {"Non-Reactive": 0, "Positive": 1, "Reactive": 2, "Unknown": 3}
+
 TYPEOCASE_MAP = {
     "New": 0,
     "PMDT": 1,
     "Retreatment: Others": 2,
     "Retreatment: Recurrent": 3,
     "Retreatment: Treatment after failure": 4,
-    "Retreatment: Treatment after lost to follow up": 5
+    "Retreatment: Treatment after lost to follow up": 5,
+    "Unknown": 6
 }
+
 MICROBIO_MAP = {
-    "No": 0, "Yes": 1, 
+    "No": 0, "Yes": 1,
     0: 0, 1: 1,
-    "0": 0, "1": 1
+    "0": 0, "1": 1,
+    "Unknown": 2
 }
+
 DIABETES_MAP = {"Diabetic": 0, "Non-diabetic": 1, "Unknown": 2}
+
+URBAN_RURAL_MAP = {"urban": 0, "rural": 1, "Unknown": 2}
+
+BANK_DETAILS_MAP = {"Eligible": 0, "Not Eligible": 1, "Received": 2, "Unknown": 3}
+
 
 OUTPUT_MAP = {1: "not-default", 0: "default"}
 THRESHOLD = 0.60
@@ -68,6 +83,15 @@ def _preprocess_dataframe(df):
 
     df["Age"] = pd.to_numeric(df["Age"])
     df["Weight"] = pd.to_numeric(df["Weight"])
+
+    df["urban_rural_background"] = _map_series(
+    df["urban_rural_background"], URBAN_RURAL_MAP,
+    "urban_rural_background")
+
+    df["Bank_details"] = _map_series(
+    df["Bank_details"], BANK_DETAILS_MAP,
+    "Bank_details")
+
 
     # --- IMPORTANT FIX: Correct scaling order ---
     ordered = scaler.feature_names_in_
