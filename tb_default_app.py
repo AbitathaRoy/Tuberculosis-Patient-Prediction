@@ -99,6 +99,8 @@ with tab2:
         st.markdown(f"### Patient {i+1}")
 
         col1, col2 = st.columns(2)
+        name = st.text_input("Patient Name")
+        patient_id = st.text_input("Patient ID")
 
         with col1:
             gender = st.selectbox("Gender", 
