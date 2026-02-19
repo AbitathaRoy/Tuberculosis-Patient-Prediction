@@ -35,19 +35,20 @@ with tab1:
 
     name = st.text_input("Patient Name")
     patient_id = st.text_input("Patient ID")
-    gender = st.selectbox("Gender", ["Female", "Male", "Transgender"])
+    gender = st.selectbox("Gender", ["Female", "Male", "Transgender", "Unknown"])
     age = st.number_input("Age", min_value=0, max_value=120, value=30)
     weight = st.number_input("Weight (kg)", min_value=1.0, max_value=250.0)
     hiv = st.selectbox("HIV Status", ["Non-Reactive", "Positive", "Reactive", "Unknown"])
-    diabetes = st.selectbox("Diabetes Status", ["Non-diabetic", "Diabetic"])
-    micro = st.selectbox("Microbiologically Confirmed?", ["Yes", "No"])
+    diabetes = st.selectbox("Diabetes Status", ["Non-diabetic", "Diabetic", "Unknown"])
+    micro = st.selectbox("Microbiologically Confirmed?", ["Yes", "No", "Unknown"])
     typeofcase = st.selectbox("Type of TB Case", [
         "New", "PMDT", "Retreatment: Others", "Retreatment: Recurrent",
         "Retreatment: Treatment after failure",
-        "Retreatment: Treatment after lost to follow up"
+        "Retreatment: Treatment after lost to follow up",
+        "Unknown"
     ])
-    site = st.selectbox("Site of Disease", ["Pulmonary", "Extra Pulmonary"])
-    interstate = st.selectbox("Inter-state / Inter-district", ["Inter-District", "Inter-State"])
+    site = st.selectbox("Site of Disease", ["Pulmonary", "Extra Pulmonary", "Unknown"])
+    interstate = st.selectbox("Inter-state / Inter-district", ["Inter-District", "Inter-State", "Unknown"])
     urban_rural = st.selectbox(
     "Urban / Rural Background",
     ["urban", "rural", "Unknown"]
