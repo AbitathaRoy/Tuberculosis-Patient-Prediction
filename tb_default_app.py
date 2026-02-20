@@ -89,138 +89,120 @@ with tab1:
 with tab2:
     st.subheader("Batch Patient Prediction")
 
-    if "batch_data" not in st.session_state:
-        st.session_state.batch_data = []
+    # Initialize once
+    if "batch_df" not in st.session_state:
+        st.session_state.batch_df = pd.DataFrame({
+            "Name": [""],
+            "Patient_ID": [""],
+            "Gender": ["Female"],
+            "Age": [30],
+            "Weight": [50.0],
+            "HIV_Status": ["Unknown"],
+            "DiabetesStatus": ["Unknown"],
+            "Microbiologically_Confirmed": ["Unknown"],
+            "TypeOfCase": ["New"],
+            "SiteOfDisease": ["Pulmonary"],
+            "Inter-state/Inter-district enrollment": ["Unknown"],
+            "urban_rural_background": ["urban"],
+            "Bank_details": ["Eligible"]
+        })
 
-    # Add custom CSS for scrollable rows
-    st.markdown("""
-    <style>
-    .scrollable-container {
-        overflow-x: auto;
-        overflow-y: visible;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-
-    # Display patient records as horizontal rows with scrolling
-    if len(st.session_state.batch_data) > 0:
-        st.markdown('<div class="scrollable-container">', unsafe_allow_html=True)
-        
-        for i in range(len(st.session_state.batch_data)):
-            # Create wider columns to force horizontal scrolling
-            cols = st.columns([2.0, 2.0, 2.0, 1.2, 1.5, 2.0, 2.0, 2.5, 2.5, 2.0, 2.2, 2.0, 2.2, 0.8])
-            
-            with cols[0]:
-                st.text_input("Patient Name", key=f"name_{i}", label_visibility="visible")
-            with cols[1]:
-                st.text_input("Patient ID", key=f"id_{i}", label_visibility="visible")
-            with cols[2]:
-                st.selectbox("Gender", 
-                    ["Female", "Male", "Transgender", "Unknown"], 
-                    key=f"gender_{i}", label_visibility="visible")
-            with cols[3]:
-                st.number_input("Age", 0, 120, 30, key=f"age_{i}", label_visibility="visible")
-            with cols[4]:
-                st.number_input("Weight (kg)", 1.0, 250.0, key=f"weight_{i}", label_visibility="visible")
-            with cols[5]:
-                st.selectbox("HIV Status", 
-                    ["Non-Reactive", "Positive", "Reactive", "Unknown"],
-                    key=f"hiv_{i}", label_visibility="visible")
-            with cols[6]:
-                st.selectbox("Diabetes Status", 
-                    ["Non-diabetic", "Diabetic", "Unknown"],
-                    key=f"diabetes_{i}", label_visibility="visible")
-            with cols[7]:
-                st.selectbox("Microbiologically Confirmed",
-                    ["Yes", "No", "Unknown"],
-                    key=f"micro_{i}", label_visibility="visible")
-            with cols[8]:
-                st.selectbox("Type of TB Case", [
-                    "New", "PMDT", "Retreatment: Others",
+    edited_df = st.data_editor(
+        st.session_state.batch_df,
+        num_rows="dynamic",
+        use_container_width=True,
+        hide_index=False,   # <-- critical
+        key="batch_editor",
+        column_config={
+            "Name": st.column_config.TextColumn(default=""),
+            "Patient_ID": st.column_config.TextColumn(default=""),
+            "Gender": st.column_config.SelectboxColumn(
+                options=["Female", "Male", "Transgender", "Unknown"],
+                default="Female"
+            ),
+            "Age": st.column_config.NumberColumn(
+                min_value=0,
+                max_value=120,
+                default=30
+            ),
+            "Weight": st.column_config.NumberColumn(
+                min_value=1.0,
+                max_value=250.0,
+                default=50.0
+            ),
+            "HIV_Status": st.column_config.SelectboxColumn(
+                options=["Non-Reactive", "Positive", "Reactive", "Unknown"],
+                default="Unknown"
+            ),
+            "DiabetesStatus": st.column_config.SelectboxColumn(
+                options=["Non-diabetic", "Diabetic", "Unknown"],
+                default="Unknown"
+            ),
+            "Microbiologically_Confirmed": st.column_config.SelectboxColumn(
+                options=["Yes", "No", "Unknown"],
+                default="Unknown"
+            ),
+            "TypeOfCase": st.column_config.SelectboxColumn(
+                options=[
+                    "New",
+                    "PMDT",
+                    "Retreatment: Others",
                     "Retreatment: Recurrent",
                     "Retreatment: Treatment after failure",
                     "Retreatment: Treatment after lost to follow up",
                     "Unknown"
-                ], key=f"type_{i}", label_visibility="visible")
-            with cols[9]:
-                st.selectbox("Site of Disease",
-                    ["Pulmonary", "Extra Pulmonary", "Unknown"],
-                    key=f"site_{i}", label_visibility="visible")
-            with cols[10]:
-                st.selectbox("Inter-state/Inter-district",
-                    ["Inter-District", "Inter-State", "Unknown"],
-                    key=f"interstate_{i}", label_visibility="visible")
-            with cols[11]:
-                st.selectbox("Urban/Rural Background",
-                    ["urban", "rural", "Unknown"],
-                    key=f"urban_{i}", label_visibility="visible")
-            with cols[12]:
-                st.selectbox("Bank Details Status",
-                    ["Eligible", "Not Eligible", "Received", "Unknown"],
-                    key=f"bank_{i}", label_visibility="visible")
-            with cols[13]:
-                if st.button("✕", key=f"delete_{i}"):
-                    st.session_state.batch_data.pop(i)
-                    st.rerun()
-        
-        st.markdown('</div>', unsafe_allow_html=True)
+                ],
+                default="New"
+            ),
+            "SiteOfDisease": st.column_config.SelectboxColumn(
+                options=["Pulmonary", "Extra Pulmonary", "Unknown"],
+                default="Pulmonary"
+            ),
+            "Inter-state/Inter-district enrollment": st.column_config.SelectboxColumn(
+                options=["Inter-District", "Inter-State", "Unknown"],
+                default="Unknown"
+            ),
+            "urban_rural_background": st.column_config.SelectboxColumn(
+                options=["urban", "rural", "Unknown"],
+                default="urban"
+            ),
+            "Bank_details": st.column_config.SelectboxColumn(
+                options=["Eligible", "Not Eligible", "Received", "Unknown"],
+                default="Eligible"
+            ),
+        }
+    )
 
-    # Bottom control buttons
+    edited_df = edited_df.reset_index(drop=True)
+    st.session_state.batch_df = edited_df
+
     st.divider()
-    col1, col2, col3, col_spacer = st.columns([1, 1, 1, 2])
-    
+
+    col1, col2 = st.columns(2)
+
     with col1:
-        if st.button("➕ Add New Patient", use_container_width=True):
-            st.session_state.batch_data.append({})
-            st.rerun()
-    
+        run_clicked = st.button("▶ Run Batch Prediction", use_container_width=True)
+
     with col2:
-        if st.button("▶ Run Batch Prediction", use_container_width=True):
-            if len(st.session_state.batch_data) > 0:
-                records = []
-
-                for i in range(len(st.session_state.batch_data)):
-                    records.append({
-                        "Name": st.session_state.get(f"name_{i}", ""),
-                        "Patient_ID": st.session_state.get(f"id_{i}", ""),
-                        "Gender": st.session_state[f"gender_{i}"],
-                        "Age": st.session_state[f"age_{i}"],
-                        "Weight": st.session_state[f"weight_{i}"],
-                        "HIV_Status": st.session_state[f"hiv_{i}"],
-                        "DiabetesStatus": st.session_state[f"diabetes_{i}"],
-                        "Microbiologically_Confirmed": st.session_state[f"micro_{i}"],
-                        "TypeOfCase": st.session_state[f"type_{i}"],
-                        "SiteOfDisease": st.session_state[f"site_{i}"],
-                        "Inter-state/Inter-district enrollment": st.session_state[f"interstate_{i}"],
-                        "urban_rural_background": st.session_state[f"urban_{i}"],
-                        "Bank_details": st.session_state[f"bank_{i}"]
-                    })
-
-                df_batch = pd.DataFrame(records)
-
-                X = preprocess_batch(df_batch)
-                with st.spinner('Running batch predictions...'):
-                    raw_preds = model.predict(X)
-
-                decoded = [decode_output(r) for r in raw_preds]
-
-                df_batch["Prediction"] = decoded
-
-                st.success("Batch predictions complete.")
-                st.dataframe(df_batch)
-            else:
-                st.warning("Please add at least one patient.")
-    
-    with col3:
         if st.button("🔄 Reset", use_container_width=True):
-            st.session_state.batch_data = []
+            st.session_state.batch_df = st.session_state.batch_df.iloc[0:1]
             st.rerun()
 
+    if run_clicked and not edited_df.empty:
+        X = preprocess_batch(edited_df)
 
+        with st.spinner("Running batch predictions..."):
+            raw_preds = model.predict(X)
 
+        decoded = [decode_output(r) for r in raw_preds]
+
+        result_df = edited_df.copy()
+        result_df["Prediction"] = decoded
+
+        result_df = result_df.reset_index(drop=True)
+        result_df.insert(0, "S.No", range(1, len(result_df) + 1))
+
+        st.dataframe(result_df, use_container_width=True, hide_index=True)
 
 # ---------------- EVALUATION ----------------
 if debug_mode:
