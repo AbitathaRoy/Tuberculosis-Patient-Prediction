@@ -72,7 +72,7 @@ with tab1:
             "SiteOfDisease": site,
             "Inter-state/Inter-district enrollment": interstate,
             "urban_rural_background": urban_rural,
-            "Bank details": bank_details
+            "Bank_details": bank_details
         }
 
         X = preprocess_single(input_dict)
@@ -89,9 +89,10 @@ with tab1:
 with tab2:
     st.subheader("Batch Patient Prediction")
 
-    # Initialize once
+    # Initialize once with a new "Select" column for row deletion
     if "batch_df" not in st.session_state:
         st.session_state.batch_df = pd.DataFrame({
+            "Select": [False],  # <-- New column for selecting rows
             "Name": [""],
             "Patient_ID": [""],
             "Gender": ["Female"],
@@ -103,17 +104,23 @@ with tab2:
             "TypeOfCase": ["New"],
             "SiteOfDisease": ["Pulmonary"],
             "Inter-state/Inter-district enrollment": ["Unknown"],
-            "urban_rural_background": ["urban"],
-            "Bank_details": ["Eligible"]
+            "urban_rural_background": "urban",
+            "Bank_details": "Eligible"
         })
 
+    # Render the editor with "fixed" rows to hide the native + button
     edited_df = st.data_editor(
         st.session_state.batch_df,
-        num_rows="dynamic",
+        num_rows="fixed",   # Keeps toolbar, hides native + and trash can
         use_container_width=True,
-        hide_index=False,   # <-- critical
+        hide_index=False,   
         key="batch_editor",
         column_config={
+            "Select": st.column_config.CheckboxColumn(
+                "Select", 
+                help="Select rows to delete", 
+                default=False
+            ),
             "Name": st.column_config.TextColumn(default=""),
             "Patient_ID": st.column_config.TextColumn(default=""),
             "Gender": st.column_config.SelectboxColumn(
@@ -121,14 +128,10 @@ with tab2:
                 default="Female"
             ),
             "Age": st.column_config.NumberColumn(
-                min_value=0,
-                max_value=120,
-                default=30
+                min_value=0, max_value=120, default=30
             ),
             "Weight": st.column_config.NumberColumn(
-                min_value=1.0,
-                max_value=250.0,
-                default=50.0
+                min_value=1.0, max_value=250.0, default=50.0
             ),
             "HIV_Status": st.column_config.SelectboxColumn(
                 options=["Non-Reactive", "Positive", "Reactive", "Unknown"],
@@ -144,13 +147,9 @@ with tab2:
             ),
             "TypeOfCase": st.column_config.SelectboxColumn(
                 options=[
-                    "New",
-                    "PMDT",
-                    "Retreatment: Others",
-                    "Retreatment: Recurrent",
+                    "New", "PMDT", "Retreatment: Others", "Retreatment: Recurrent",
                     "Retreatment: Treatment after failure",
-                    "Retreatment: Treatment after lost to follow up",
-                    "Unknown"
+                    "Retreatment: Treatment after lost to follow up", "Unknown"
                 ],
                 default="New"
             ),
@@ -173,30 +172,78 @@ with tab2:
         }
     )
 
-    edited_df = edited_df.reset_index(drop=True)
-    st.session_state.batch_df = edited_df
+    # Place custom buttons BELOW the table
+    col_add, col_del, col_space = st.columns([2, 2, 4]) 
+    
+    with col_add:
+        if st.button("➕ Add Patient Row", use_container_width=True):
+            # Save current edits before appending!
+            st.session_state.batch_df = edited_df 
+            
+            new_row = pd.DataFrame([{
+                "Select": False, "Name": "", "Patient_ID": "", "Gender": "Female", 
+                "Age": 30, "Weight": 50.0, "HIV_Status": "Unknown", 
+                "DiabetesStatus": "Unknown", "Microbiologically_Confirmed": "Unknown",
+                "TypeOfCase": "New", "SiteOfDisease": "Pulmonary", 
+                "Inter-state/Inter-district enrollment": "Unknown",
+                "urban_rural_background": "urban", "Bank_details": "Eligible"
+            }])
+            
+            st.session_state.batch_df = pd.concat([st.session_state.batch_df, new_row], ignore_index=True)
+            
+            if "batch_editor" in st.session_state:
+                del st.session_state["batch_editor"]
+            st.rerun()
+
+    with col_del:
+        if st.button("🗑️ Delete Selected", use_container_width=True):
+            # Keep only rows where 'Select' is False
+            st.session_state.batch_df = edited_df[~edited_df["Select"]].reset_index(drop=True)
+            
+            # If they delete everything, leave at least one empty row
+            if st.session_state.batch_df.empty:
+                st.session_state.batch_df = pd.DataFrame([{
+                    "Select": False, "Name": "", "Patient_ID": "", "Gender": "Female", 
+                    "Age": 30, "Weight": 50.0, "HIV_Status": "Unknown", 
+                    "DiabetesStatus": "Unknown", "Microbiologically_Confirmed": "Unknown",
+                    "TypeOfCase": "New", "SiteOfDisease": "Pulmonary", 
+                    "Inter-state/Inter-district enrollment": "Unknown",
+                    "urban_rural_background": "urban", "Bank_details": "Eligible"
+                }])
+
+            if "batch_editor" in st.session_state:
+                del st.session_state["batch_editor"]
+            st.rerun()
 
     st.divider()
 
+    # --- Run and Reset Buttons ---
     col1, col2 = st.columns(2)
 
     with col1:
         run_clicked = st.button("▶ Run Batch Prediction", use_container_width=True)
 
     with col2:
-        if st.button("🔄 Reset", use_container_width=True):
+        if st.button("🔄 Reset Table", use_container_width=True):
             st.session_state.batch_df = st.session_state.batch_df.iloc[0:1]
+            # Make sure the reset row is deselected
+            st.session_state.batch_df.at[0, "Select"] = False 
+            if "batch_editor" in st.session_state:
+                del st.session_state["batch_editor"]
             st.rerun()
 
+    # --- Prediction Execution ---
     if run_clicked and not edited_df.empty:
-        X = preprocess_batch(edited_df)
+        # Drop the "Select" column before sending to preprocessing
+        X_df = edited_df.drop(columns=["Select"])
+        X = preprocess_batch(X_df)
 
         with st.spinner("Running batch predictions..."):
             raw_preds = model.predict(X)
 
         decoded = [decode_output(r) for r in raw_preds]
 
-        result_df = edited_df.copy()
+        result_df = edited_df.drop(columns=["Select"]).copy()
         result_df["Prediction"] = decoded
 
         result_df = result_df.reset_index(drop=True)
